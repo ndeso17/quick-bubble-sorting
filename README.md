@@ -28,6 +28,13 @@ Server default berjalan di:
 - `/quick` : visualizer Quick Sort
 - `/api/system/resources` : API resource host (core/thread/RAM)
 
+## Preview
+### Quick Sort
+![Quick Sort](hasil/quick.png)
+
+### Bubble Sort
+![Bubble Sort](hasil/bubble.png)
+
 ## Catatan
 - Aplikasi akan mendeteksi resource host dari endpoint backend `/api/system/resources`.
 - Jika fetch gagal, frontend memakai fallback lokal otomatis.
