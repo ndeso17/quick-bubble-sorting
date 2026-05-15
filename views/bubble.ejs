@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bubble Sort Visualizer</title>
+    <link rel="stylesheet" href="/css/bubble.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Bubble Sort</h1>
+
+      <div class="controls">
+        <label for="nInput">n:</label>
+        <input type="number" id="nInput" min="2" value="24" />
+
+        <label for="coreSelect">Core:</label>
+        <select id="coreSelect"></select>
+
+        <label for="threadSelect">Thread:</label>
+        <select id="threadSelect"></select>
+
+        <label for="ramSelect">RAM (GB):</label>
+        <select id="ramSelect"></select>
+
+        <button onclick="generate()">Generate Array</button>
+        <button onclick="startSort()" id="btnSort">▶ Mulai Sort</button>
+        <button onclick="pauseResume()" id="btnPause" disabled>⏸ Pause</button>
+        <button onclick="reset()" id="btnReset">↺ Reset</button>
+      </div>
+
+      <div id="resourceHint">Host detected: - | Effective worker: -</div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Comparisons</div><div class="stat-value comp" id="sComp">0</div></div>
+        <div class="stat"><div class="stat-label">Swaps</div><div class="stat-value swap" id="sSwap">0</div></div>
+        <div class="stat"><div class="stat-label">Pass</div><div class="stat-value pass" id="sPass">0</div></div>
+        <div class="stat"><div class="stat-label">Durasi</div><div class="stat-value time" id="sTime">0 ms</div></div>
+        <div class="stat"><div class="stat-label">Worker Aktif</div><div class="stat-value thr" id="sThr">0</div></div>
+      </div>
+
+      <div class="legend">
+        <span class="leg-item"><span class="leg-dot" style="background:#e8b84b"></span>Belum diproses</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#e07a30"></span>Dibandingkan</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#7a9fe0"></span>Sudah terurut</span>
+      </div>
+
+      <div id="chart-area"><div id="chart-wrap"></div></div>
+      <div id="msg">Klik "Generate Array" lalu "Mulai Sort"</div>
+    </div>
+
+    <script src="/js/bubble.js"></script>
+  </body>
+</html>

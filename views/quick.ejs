@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quick Sort Visualizer</title>
+    <link rel="stylesheet" href="/css/quick.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Quick Sort</h1>
+
+      <div class="controls">
+        <label for="nInput">n:</label>
+        <input type="number" id="nInput" min="2" value="24" />
+
+        <label for="coreSelect">Core:</label>
+        <select id="coreSelect"></select>
+
+        <label for="threadSelect">Thread:</label>
+        <select id="threadSelect"></select>
+
+        <label for="ramSelect">RAM (GB):</label>
+        <select id="ramSelect"></select>
+
+        <button onclick="generate()">Generate Array</button>
+        <button onclick="startSort()" id="btnSort">▶ Mulai Sort</button>
+        <button onclick="pauseResume()" id="btnPause" disabled>⏸ Pause</button>
+        <button onclick="reset()">↺ Reset</button>
+      </div>
+
+      <div id="resourceHint">Host detected: - | Effective worker: -</div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Comparisons</div><div class="stat-value comp" id="sComp">0</div></div>
+        <div class="stat"><div class="stat-label">Swaps</div><div class="stat-value swap" id="sSwap">0</div></div>
+        <div class="stat"><div class="stat-label">Step</div><div class="stat-value calls" id="sCalls">0</div></div>
+        <div class="stat"><div class="stat-label">Kedalaman</div><div class="stat-value depth" id="sDepth">0</div></div>
+        <div class="stat"><div class="stat-label">Durasi</div><div class="stat-value time" id="sTime">0 ms</div></div>
+        <div class="stat"><div class="stat-label">Worker Aktif</div><div class="stat-value thr" id="sThr">0</div></div>
+      </div>
+
+      <div class="legend">
+        <span class="leg-item"><span class="leg-dot" style="background:#e24b4a"></span>Pivot</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#ef9f27"></span>Dibandingkan</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#85b7eb"></span>Range aktif</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#97c459"></span>Sudah terurut</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#5dcaa5"></span>Belum diproses</span>
+      </div>
+
+      <div id="chart-area"><div id="chart-wrap"></div></div>
+      <div id="msg">Klik "Generate Array" lalu "Mulai Sort"</div>
+    </div>
+
+    <script src="/js/quick.js"></script>
+  </body>
+</html>
