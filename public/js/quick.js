@@ -1,6 +1,7 @@
       let arr = [];
       let sorting = false;
       let paused = false;
+      let sortOrder = "asc";
       let runStartTime = 0;
       let elapsedBeforePause = 0;
 
@@ -14,6 +15,38 @@
       const pendingTasks = new Map();
       let taskSeq = 1;
       let hostResources = null;
+
+      function updateOrderButtons() {
+        const orderButtons = document.querySelectorAll(".order-btn");
+        orderButtons.forEach((btn) => {
+          const active = btn.dataset.order === sortOrder;
+          btn.classList.toggle("active", active);
+          btn.disabled = sorting;
+        });
+      }
+
+      function setSortOrder(order) {
+        if (!["asc", "desc"].includes(order)) return;
+        if (sorting) return;
+        sortOrder = order;
+        updateOrderButtons();
+        document.getElementById("msg").textContent =
+          `Mode urut: ${order === "asc" ? "kecil ke besar" : "besar ke kecil"}. Generate berikutnya akan pakai urutan kebalikannya.`;
+      }
+
+      function buildInitialArray(n) {
+        if (sortOrder === "asc") return Array.from({ length: n }, (_, i) => n - i);
+        return Array.from({ length: n }, (_, i) => i + 1);
+      }
+
+      function shuffleInPlace(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const t = a[i];
+          a[i] = a[j];
+          a[j] = t;
+        }
+      }
 
       function formatDuration(ms) {
         if (ms < 1000) return `${Math.round(ms)} ms`;
@@ -236,7 +269,7 @@ self.onmessage = function(e) {
     return;
   }
   try {
-    const { source, left, right } = task;
+    const { source, left, right, order } = task;
     const segment = source.slice(left, right + 1);
     const pivotVal = segment[segment.length - 1];
     let i = -1;
@@ -247,7 +280,8 @@ self.onmessage = function(e) {
     for (let j = 0; j < segment.length - 1; j++) {
       localComp++;
       comparePairs.push([left + j, right]);
-      if (segment[j] <= pivotVal) {
+      const goesLeft = order === "desc" ? segment[j] >= pivotVal : segment[j] <= pivotVal;
+      if (goesLeft) {
         i++;
         if (i !== j) {
           const t = segment[i]; segment[i] = segment[j]; segment[j] = t;
@@ -356,7 +390,13 @@ self.onmessage = function(e) {
           steps++;
           const snapshot = arr.slice();
           const results = await Promise.all(
-            group.map((g) => workerPool.runTask({ type: "partition", source: snapshot, left: g.l, right: g.r }))
+            group.map((g) => workerPool.runTask({
+              type: "partition",
+              source: snapshot,
+              left: g.l,
+              right: g.r,
+              order: sortOrder
+            }))
           );
 
           for (let idx = 0; idx < group.length; idx++) {
@@ -406,18 +446,33 @@ self.onmessage = function(e) {
         const n = Math.max(2, parseInt(document.getElementById("nInput").value, 10) || 24);
         document.getElementById("nInput").value = n;
 
-        arr = Array.from({ length: n }, (_, i) => i + 1);
-        for (let i = n - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-        }
+        arr = buildInitialArray(n);
 
         sortedMask = new Array(n).fill(false);
         pivotIdx = -1;
         compareIdx = [];
         range = [-1, -1];
         render();
-        document.getElementById("msg").textContent = 'Array siap. Klik "Mulai Sort".';
+        const initialLabel = sortOrder === "asc" ? "besar ke kecil" : "kecil ke besar";
+        const targetLabel = sortOrder === "asc" ? "kecil ke besar" : "besar ke kecil";
+        document.getElementById("msg").textContent = `Array awal: ${initialLabel} (target sort: ${targetLabel}). Klik "Mulai Sort".`;
+      }
+
+      function generateRandom() {
+        resetRuntimeOnly();
+        const n = Math.max(2, parseInt(document.getElementById("nInput").value, 10) || 24);
+        document.getElementById("nInput").value = n;
+
+        arr = Array.from({ length: n }, (_, i) => i + 1);
+        shuffleInPlace(arr);
+
+        sortedMask = new Array(n).fill(false);
+        pivotIdx = -1;
+        compareIdx = [];
+        range = [-1, -1];
+        render();
+        const targetLabel = sortOrder === "asc" ? "kecil ke besar" : "besar ke kecil";
+        document.getElementById("msg").textContent = `Array awal: acak (target sort: ${targetLabel}). Klik "Mulai Sort".`;
       }
 
       function validateBeforeStart() {
@@ -462,6 +517,7 @@ self.onmessage = function(e) {
         document.getElementById("btnSort").disabled = true;
         document.getElementById("btnPause").disabled = false;
         document.getElementById("btnPause").textContent = "⏸ Pause";
+        updateOrderButtons();
 
         workerPool = createWorkerPool(validation.resources.effectiveWorkers);
         document.getElementById("sThr").textContent = String(validation.resources.effectiveWorkers);
@@ -489,6 +545,7 @@ self.onmessage = function(e) {
           document.getElementById("btnSort").disabled = false;
           document.getElementById("btnPause").disabled = true;
           document.getElementById("btnPause").textContent = "⏸ Pause";
+          updateOrderButtons();
           updateDuration();
         }
       }
@@ -537,6 +594,7 @@ self.onmessage = function(e) {
         document.getElementById("btnSort").disabled = false;
         document.getElementById("btnPause").disabled = true;
         document.getElementById("btnPause").textContent = "⏸ Pause";
+        updateOrderButtons();
       }
 
       function reset() {
@@ -554,6 +612,7 @@ self.onmessage = function(e) {
       }
 
       initDefaults();
+      updateOrderButtons();
       setInterval(() => {
         if (sorting && !paused) updateDuration();
       }, 100);

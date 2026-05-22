@@ -1,6 +1,6 @@
 const { parentPort } = require('worker_threads');
 
-function bubbleSort(arr) {
+function bubbleSort(arr, order) {
   let comparisons = 0;
   let swaps = 0;
   const a = arr.slice();
@@ -8,7 +8,8 @@ function bubbleSort(arr) {
     let swapped = false;
     for (let j = 0; j < a.length - 1 - i; j++) {
       comparisons++;
-      if (a[j] > a[j + 1]) {
+      const shouldSwap = order === 'desc' ? a[j] < a[j + 1] : a[j] > a[j + 1];
+      if (shouldSwap) {
         const t = a[j];
         a[j] = a[j + 1];
         a[j + 1] = t;
@@ -21,7 +22,7 @@ function bubbleSort(arr) {
   return { sorted: a, comparisons, swaps };
 }
 
-function quickSortWithStats(arr) {
+function quickSortWithStats(arr, order) {
   const a = arr.slice();
   let comparisons = 0;
   let swaps = 0;
@@ -31,7 +32,8 @@ function quickSortWithStats(arr) {
     let i = lo - 1;
     for (let j = lo; j < hi; j++) {
       comparisons++;
-      if (a[j] <= pivot) {
+      const goesLeft = order === 'desc' ? a[j] >= pivot : a[j] <= pivot;
+      if (goesLeft) {
         i++;
         if (i !== j) {
           const t = a[i];
@@ -62,9 +64,9 @@ function quickSortWithStats(arr) {
 }
 
 parentPort.on('message', (msg) => {
-  const { algorithm, chunk, id } = msg;
+  const { algorithm, chunk, id, order = 'asc' } = msg;
   try {
-    const out = algorithm === 'bubble' ? bubbleSort(chunk) : quickSortWithStats(chunk);
+    const out = algorithm === 'bubble' ? bubbleSort(chunk, order) : quickSortWithStats(chunk, order);
     parentPort.postMessage({ id, ...out });
   } catch (err) {
     parentPort.postMessage({ id, error: err.message || String(err) });

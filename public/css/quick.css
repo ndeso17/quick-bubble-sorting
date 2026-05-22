@@ -24,6 +24,7 @@
         margin-bottom: 1rem;
       }
       .controls label { font-size: 13px; color: #aaa; }
+      .order-label { font-size: 13px; color: #aaa; margin-left: 4px; }
       .controls input[type="number"], .controls select {
         width: 90px;
         padding: 6px 8px;
@@ -45,6 +46,11 @@
       }
       button:hover { background: #2e2e2e; }
       button:disabled { opacity: 0.4; cursor: default; }
+      .order-btn.active {
+        border-color: #5dcaa5;
+        background: #17392e;
+        color: #8be5c5;
+      }
 
       .stats {
         display: grid;

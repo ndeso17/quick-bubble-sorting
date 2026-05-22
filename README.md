@@ -98,12 +98,13 @@ Versi CLI tanpa browser, berjalan langsung sebagai proses Node.js.
 
 Jalankan:
 ```bash
-npm run cli:sort -- --algo quick --n 100000 --threads 4 --ram-mb 1024
-npm run cli:sort -- --algo bubble --n 20000 --threads 4 --ram-mb 1024
+npm run cli:sort -- --algo quick --order asc --n 100000 --threads 4 --ram-mb 1024
+npm run cli:sort -- --algo bubble --order desc --n 20000 --threads 4 --ram-mb 1024
 ```
 
 Argumen:
 - `--algo quick|bubble`
+- `--order asc|desc`
 - `--n <jumlah elemen>`
 - `--threads <jumlah worker_threads>`
 - `--ram-mb <budget RAM total untuk worker>`
@@ -112,5 +113,9 @@ Argumen:
 
 Catatan:
 - Ini proses OS-level (bukan browser), jadi tidak terkena batasan Web Worker UI.
+- Data awal untuk sorting bersifat non-acak: selalu urutan kebalikan dari target `--order`.
+  - `--order asc` -> input awal `n..1` (descending)
+  - `--order desc` -> input awal `1..n` (ascending)
 - RAM diatur per worker lewat `resourceLimits.maxOldGenerationSizeMb` (V8), dan thread nyata via `worker_threads`.
+- `--seed` tetap kompatibel di argumen, tetapi tidak dipakai untuk mode input awal deterministik ini.
 - Untuk kontrol OS yang lebih keras (affinity/cgroup), jalankan bersama tool OS seperti `taskset`/Docker/cgroup.

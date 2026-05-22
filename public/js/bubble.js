@@ -1,6 +1,7 @@
       let arr = [];
       let sorting = false;
       let paused = false;
+      let sortOrder = "asc";
       let runStartTime = 0;
       let elapsedBeforePause = 0;
 
@@ -11,6 +12,38 @@
       const pendingTasks = new Map();
       let taskSeq = 1;
       let hostResources = null;
+
+      function updateOrderButtons() {
+        const orderButtons = document.querySelectorAll(".order-btn");
+        orderButtons.forEach((btn) => {
+          const active = btn.dataset.order === sortOrder;
+          btn.classList.toggle("active", active);
+          btn.disabled = sorting;
+        });
+      }
+
+      function setSortOrder(order) {
+        if (!["asc", "desc"].includes(order)) return;
+        if (sorting) return;
+        sortOrder = order;
+        updateOrderButtons();
+        document.getElementById("msg").textContent =
+          `Mode urut: ${order === "asc" ? "kecil ke besar" : "besar ke kecil"}. Generate berikutnya akan pakai urutan kebalikannya.`;
+      }
+
+      function buildInitialArray(n) {
+        if (sortOrder === "asc") return Array.from({ length: n }, (_, i) => n - i);
+        return Array.from({ length: n }, (_, i) => i + 1);
+      }
+
+      function shuffleInPlace(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const t = a[i];
+          a[i] = a[j];
+          a[j] = t;
+        }
+      }
 
       function formatDuration(ms) {
         if (ms < 1000) return `${Math.round(ms)} ms`;
@@ -223,7 +256,7 @@ self.onmessage = function(e) {
     return;
   }
   try {
-    const { source, pairs } = task;
+    const { source, pairs, order } = task;
     const updates = [];
     let localComp = 0;
     let localSwap = 0;
@@ -231,7 +264,8 @@ self.onmessage = function(e) {
       const i = pairs[k][0];
       const j = pairs[k][1];
       localComp++;
-      if (source[i] > source[j]) {
+      const shouldSwap = order === "desc" ? source[i] < source[j] : source[i] > source[j];
+      if (shouldSwap) {
         localSwap++;
         updates.push([i, source[j], j, source[i]]);
       }
@@ -309,7 +343,12 @@ self.onmessage = function(e) {
 
           const chunks = chunkPairs(pairs, workerPool.size);
           const snapshot = arr.slice();
-          const results = await Promise.all(chunks.map((group) => workerPool.runTask({ type: "pairBatch", source: snapshot, pairs: group })));
+          const results = await Promise.all(chunks.map((group) => workerPool.runTask({
+            type: "pairBatch",
+            source: snapshot,
+            pairs: group,
+            order: sortOrder
+          })));
 
           let anySwap = false;
           for (const result of results) {
@@ -325,8 +364,11 @@ self.onmessage = function(e) {
             }
           }
 
-          const sortedSuffix = Math.max(0, phase - 1);
-          for (let k = 0; k < sortedSuffix; k++) sortedMask[n - 1 - k] = true;
+          const sortedCount = Math.max(0, phase - 1);
+          for (let k = 0; k < sortedCount; k++) {
+            if (sortOrder === "desc") sortedMask[k] = true;
+            else sortedMask[n - 1 - k] = true;
+          }
 
           render(arr, hiI, hiJ, sortedMask);
           updateStats();
@@ -354,14 +396,25 @@ self.onmessage = function(e) {
         const n = Math.max(2, parseInt(document.getElementById("nInput").value, 10) || 24);
         document.getElementById("nInput").value = n;
 
-        arr = Array.from({ length: n }, (_, i) => i + 1);
-        for (let i = n - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-        }
+        arr = buildInitialArray(n);
 
         render(arr, -1, -1, new Array(n).fill(false));
-        document.getElementById("msg").textContent = 'Array siap. Klik "Mulai Sort".';
+        const initialLabel = sortOrder === "asc" ? "besar ke kecil" : "kecil ke besar";
+        const targetLabel = sortOrder === "asc" ? "kecil ke besar" : "besar ke kecil";
+        document.getElementById("msg").textContent = `Array awal: ${initialLabel} (target sort: ${targetLabel}). Klik "Mulai Sort".`;
+      }
+
+      function generateRandom() {
+        resetRuntimeOnly();
+        const n = Math.max(2, parseInt(document.getElementById("nInput").value, 10) || 24);
+        document.getElementById("nInput").value = n;
+
+        arr = Array.from({ length: n }, (_, i) => i + 1);
+        shuffleInPlace(arr);
+
+        render(arr, -1, -1, new Array(n).fill(false));
+        const targetLabel = sortOrder === "asc" ? "kecil ke besar" : "besar ke kecil";
+        document.getElementById("msg").textContent = `Array awal: acak (target sort: ${targetLabel}). Klik "Mulai Sort".`;
       }
 
       function validateBeforeStart() {
@@ -404,6 +457,7 @@ self.onmessage = function(e) {
         document.getElementById("btnSort").disabled = true;
         document.getElementById("btnPause").disabled = false;
         document.getElementById("btnPause").textContent = "⏸ Pause";
+        updateOrderButtons();
 
         workerPool = createWorkerPool(validation.resources.effectiveWorkers);
         document.getElementById("sThr").textContent = String(validation.resources.effectiveWorkers);
@@ -431,6 +485,7 @@ self.onmessage = function(e) {
           document.getElementById("btnSort").disabled = false;
           document.getElementById("btnPause").disabled = true;
           document.getElementById("btnPause").textContent = "⏸ Pause";
+          updateOrderButtons();
           updateDuration();
         }
       }
@@ -473,6 +528,7 @@ self.onmessage = function(e) {
         document.getElementById("btnSort").disabled = false;
         document.getElementById("btnPause").disabled = true;
         document.getElementById("btnPause").textContent = "⏸ Pause";
+        updateOrderButtons();
       }
 
       function reset() {
@@ -489,6 +545,7 @@ self.onmessage = function(e) {
       }
 
       initDefaults();
+      updateOrderButtons();
       setInterval(() => {
         if (sorting && !paused) updateDuration();
       }, 100);

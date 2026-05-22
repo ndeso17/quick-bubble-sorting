@@ -23,7 +23,12 @@
         <label for="ramSelect">RAM (GB):</label>
         <select id="ramSelect"></select>
 
-        <button onclick="generate()">Generate Array</button>
+        <span class="order-label">Urutan:</span>
+        <button type="button" class="order-btn active" data-order="asc" onclick="setSortOrder('asc')">Kecil → Besar</button>
+        <button type="button" class="order-btn" data-order="desc" onclick="setSortOrder('desc')">Besar → Kecil</button>
+
+        <button onclick="generate()">Generate Array Terurut</button>
+        <button onclick="generateRandom()">Generate Array Acak</button>
         <button onclick="startSort()" id="btnSort">▶ Mulai Sort</button>
         <button onclick="pauseResume()" id="btnPause" disabled>⏸ Pause</button>
         <button onclick="reset()">↺ Reset</button>
@@ -49,7 +54,7 @@
       </div>
 
       <div id="chart-area"><div id="chart-wrap"></div></div>
-      <div id="msg">Klik "Generate Array" lalu "Mulai Sort"</div>
+      <div id="msg">Klik "Generate Array Terurut/Acak" lalu "Mulai Sort"</div>
     </div>
 
     <script src="/js/quick.js"></script>
